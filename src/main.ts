@@ -64,7 +64,7 @@ export function parse(content: string): any {
 
 	let state = ROOT_STATE;
 
-	let cur:any = {};
+	let cur:any = null;
 	let stateStack:number[] = [];
 	let objStack:any[] = [];
 	let curKey:string = null;
@@ -126,6 +126,7 @@ export function parse(content: string): any {
 		} else if (state === ARR_STATE) {
 			arrState.enterDict();
 		} else { // ROOT_STATE
+			cur = {};
 			pushState(DICT_STATE, cur);
 		}
 	}
@@ -144,7 +145,8 @@ export function parse(content: string): any {
 		} else if (state === ARR_STATE) {
 			arrState.enterArray();
 		} else { // ROOT_STATE
-			fail('unexpected <array>');
+			cur = [];
+			pushState(ARR_STATE, cur);
 		}
 	}
 	function leaveArray() {
@@ -178,10 +180,13 @@ export function parse(content: string): any {
 		} else if (state === ARR_STATE) {
 			cur.push(val);
 		} else { // ROOT_STATE
-			fail('unexpected <string>');
+			cur = val;
 		}
 	}
 	function acceptReal(val:number) {
+		if (isNaN(val)) {
+			fail('cannot parse float');
+		}
 		if (state === DICT_STATE) {
 			if (curKey === null) {
 				fail('missing <key>');
@@ -191,10 +196,13 @@ export function parse(content: string): any {
 		} else if (state === ARR_STATE) {
 			cur.push(val);
 		} else { // ROOT_STATE
-			fail('unexpected <real>');
+			cur = val;
 		}
 	}
 	function acceptInteger(val:number) {
+		if (isNaN(val)) {
+			fail('cannot parse integer');
+		}
 		if (state === DICT_STATE) {
 			if (curKey === null) {
 				fail('missing <key>');
@@ -204,7 +212,7 @@ export function parse(content: string): any {
 		} else if (state === ARR_STATE) {
 			cur.push(val);
 		} else { // ROOT_STATE
-			fail('unexpected <integer>');
+			cur = val;
 		}
 	}
 	function acceptDate(val:Date) {
@@ -217,7 +225,7 @@ export function parse(content: string): any {
 		} else if (state === ARR_STATE) {
 			cur.push(val);
 		} else { // ROOT_STATE
-			fail('unexpected <date>');
+			cur = val;
 		}
 	}
 	function acceptData(val:string) {
@@ -230,7 +238,7 @@ export function parse(content: string): any {
 		} else if (state === ARR_STATE) {
 			cur.push(val);
 		} else { // ROOT_STATE
-			fail('unexpected <data>');
+			cur = val;
 		}
 	}
 	function acceptBool(val:boolean) {
@@ -243,7 +251,7 @@ export function parse(content: string): any {
 		} else if (state === ARR_STATE) {
 			cur.push(val);
 		} else { // ROOT_STATE
-			fail('unexpected <true> or <false>');
+			cur = val;
 		}
 	}
 
@@ -393,10 +401,12 @@ export function parse(content: string): any {
 				continue;
 
 			case 'true':
+				parseTagValue(tag);
 				acceptBool(true);
 				continue;
 
 			case 'false':
+				parseTagValue(tag);
 				acceptBool(false);
 				continue;
 		}

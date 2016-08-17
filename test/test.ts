@@ -26,6 +26,192 @@ describe('parse', () => {
     });
 });
 
+describe('parse', () => {
+
+	let header = [
+		'<?xml version="1.0" encoding="UTF-8"?>',
+		'<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">',
+		'<plist version="1.0">'
+	];
+
+	let footer = [
+		'</plist>'
+	];
+
+	function assertParse(lines:string[], expected:any): void {
+		let str = header.concat(lines).concat(footer).join('\n');
+		let actual = parse(str);
+		assert.deepEqual(actual, expected);
+	}
+
+	function assertThrows(lines:string[]): void {
+		let str = header.concat(lines).concat(footer).join('\n');
+		try {
+			parse(str);
+			assert.ok(false, 'throws');
+		} catch(err) {
+			assert.ok(true, 'throws');
+		}
+	}
+
+
+	it('String', function() {
+		assertParse(
+			[
+				'<string>foo</string>'
+			],
+			"foo"
+		);
+
+		assertParse(
+			[
+				'<string></string>'
+			],
+			""
+		);
+
+		assertParse(
+			[
+				'<string>',
+				'</string>'
+			],
+			"\n"
+		);
+
+		assertParse(
+			[
+				'<string>&lt;foo&gt;</string>'
+			],
+			"<foo>"
+		);
+
+	});
+
+
+	it('Numbers', function() {
+		assertParse(
+			[
+				'<integer>0</integer>'
+			],
+			0
+		);
+
+		assertParse(
+			[
+				'<real>1.123</real>'
+			],
+			1.123
+		);
+
+		assertThrows(
+			[
+				'<integer>ab</integer>'
+			]
+		);
+	});
+
+
+	it('Booleans', function() {
+		assertParse(
+			[
+				'<true />'
+			],
+			true
+		);
+
+		assertParse(
+			[
+				'<false />'
+			],
+			false
+		);
+
+		assertParse(
+			[
+				'<false></false>'
+			],
+			false
+		);
+	});
+
+
+	it('Dictionaries', function() {
+
+		// empty
+		assertParse(
+			[
+				'<dict>',
+				'</dict>'
+			],
+			{}
+		);
+
+		// keys and nesting
+		assertParse(
+			[
+				'<dict>',
+					'<key>name</key>',
+					'<string>Variable</string>',
+					'<key>scope</key>',
+					'<string>variable</string>',
+					'<key>settings</key>',
+					'<dict>',
+						'<key>fontStyle</key>',
+						'<string></string>',
+					'</dict>',
+				'</dict>'
+			],
+			{
+				name: "Variable",
+				scope: "variable",
+				settings: {
+					fontStyle: ""
+				}
+			}
+		);
+	});
+
+
+	it('Arrays', function() {
+
+		// empty
+		assertParse(
+			[
+				'<array>',
+				'</array>'
+			],
+			[]
+		);
+
+		// multiple elements
+		assertParse(
+			[
+				'<array>',
+					'<string>1</string>',
+					'<string>2</string>',
+				'</array>'
+			],
+			[ "1", "2" ]
+		);
+
+		// nesting
+		assertParse(
+			[
+				'<array>',
+					'<array>',
+						'<integer>1</integer>',
+						'<integer>2</integer>',
+					'</array>',
+					'<array>',
+						'<true />',
+					'</array>',
+				'</array>'
+			],
+			[ [ 1, 2 ], [ true ]]
+		);
+	});
+});
+
 /**
  * Parse a PLIST file using `sax`.
  */
