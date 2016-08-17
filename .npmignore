@@ -1,0 +1,11 @@
+/.vscode/
+/coverage/
+/release/test/
+/src/
+/test/
+/typings/
+/.gitignore
+/.npmignore
+/.travis.yml
+/tsconfig.json
+/typings.json

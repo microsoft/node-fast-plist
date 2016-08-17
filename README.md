@@ -62,5 +62,8 @@ Error: Near offset 1: expected < ~~~ad string~~~
 
 ## Development
 
+* `npm run watch`
+* `npm run test`
+
 ## License
 [MIT](https://github.com/Microsoft/node-fast-plist/blob/master/LICENSE.md)
