@@ -13,11 +13,11 @@ const FIXTURES_FOLDER_PATH = path.join(__dirname, '../../test/fixtures');
 
 describe('parse', () => {
     let fixtures = fs.readdirSync(FIXTURES_FOLDER_PATH);
-    
+
     fixtures.forEach((fixture) => {
         it('should work for ' + fixture, () => {
             let contents = fs.readFileSync(path.join(FIXTURES_FOLDER_PATH, fixture)).toString();
-            
+
             let expected = parseWithSAX(contents).value;
             let actual = parse(contents);
 
@@ -30,7 +30,7 @@ describe('parse', () => {
  * Parse a PLIST file using `sax`.
  */
 function parseWithSAX(content: string): { value: any; errors: string[]; } {
-    
+
     interface PListObject {
         parent: PListObject;
         value: any;
@@ -133,6 +133,6 @@ function parseWithSAX(content: string): { value: any; errors: string[]; } {
 		}
 	};
 	parser.write(content);
-	
+
     return { errors: errors, value: result };
 }
