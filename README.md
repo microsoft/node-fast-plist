@@ -1,4 +1,4 @@
-# fast-plist
+# fast-plist [![Build Status](https://travis-ci.org/Microsoft/node-fast-plist.svg?branch=master)](https://travis-ci.org/Microsoft/node-fast-plist) [![Coverage Status](https://coveralls.io/repos/Microsoft/node-fast-plist/badge.svg)](https://coveralls.io/r/Microsoft/node-fast-plist)
 A fast PLIST parser.
 
 ## Installing
