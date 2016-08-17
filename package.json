@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Microsoft/node-fast-plist#readme",
   "devDependencies": {
+    "coveralls": "^2.11.12",
     "istanbul": "^0.4.4",
     "mocha": "^3.0.2",
     "sax": "^1.2.1",
