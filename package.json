@@ -4,6 +4,7 @@
   "description": "A fast PLIST parser",
   "author": "Microsoft Corporation",
   "main": "./release/src/main.js",
+  "typings": "./release/src/main.d.ts",
   "scripts": {
     "watch": "tsc -w",
     "test": "mocha release/test/test",
