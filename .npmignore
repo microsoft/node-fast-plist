@@ -1,5 +1,6 @@
 /.vscode/
 /coverage/
+/release/src/main.js.map
 /release/test/
 /src/
 /test/
