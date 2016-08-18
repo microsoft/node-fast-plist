@@ -66,5 +66,10 @@ Error: Near offset 1: expected < ~~~ad string~~~
 * `npm run watch`
 * `npm run test`
 
+## Code of Conduct
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+
 ## License
 [MIT](https://github.com/Microsoft/node-fast-plist/blob/master/LICENSE.md)
