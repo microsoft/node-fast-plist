@@ -85,6 +85,19 @@ describe('parse', () => {
 			"<foo>"
 		);
 
+		assertParse(
+			[
+				'<string>&quot;&apos;</string>'
+			],
+			"\"'"
+		);
+
+		assertParse(
+			[
+				'<string>Ol&#225;</string>'
+			],
+			"Olá"
+		);
 	});
 
 
@@ -158,6 +171,10 @@ describe('parse', () => {
 					'<dict>',
 						'<key>fontStyle</key>',
 						'<string></string>',
+						'<key>fontSize</key>',
+						'<real>2.3</real>',
+						'<key>date</key>',
+						'<date>2016-08-18</date>',
 					'</dict>',
 				'</dict>'
 			],
@@ -165,7 +182,9 @@ describe('parse', () => {
 				name: "Variable",
 				scope: "variable",
 				settings: {
-					fontStyle: ""
+					fontStyle: "",
+					fontSize: 2.3,
+					date: new Date('2016-08-18')
 				}
 			}
 		);
@@ -201,15 +220,40 @@ describe('parse', () => {
 					'<array>',
 						'<integer>1</integer>',
 						'<integer>2</integer>',
+						'<real>2.3</real>',
+						'<date>2016-08-18</date>',
 					'</array>',
 					'<array>',
 						'<true />',
 					'</array>',
 				'</array>'
 			],
-			[ [ 1, 2 ], [ true ]]
+			[ [ 1, 2, 2.3, new Date('2016-08-18') ], [ true ]]
 		);
 	});
+
+
+	it('Dates', () => {
+		// https://en.wikipedia.org/wiki/ISO_8601
+		assertParse(
+			[
+				'<date>2016-08-18</date>'
+			],
+			new Date('2016-08-18')
+		);
+		assertParse(
+			[
+				'<date>2016-08-18T07:05:03+00:00</date>'
+			],
+			new Date('2016-08-18T07:05:03+00:00')
+		);
+		assertParse(
+			[
+				'<date>2016-08-18T07:05:03Z</date>'
+			],
+			new Date('2016-08-18T07:05:03Z')
+		);
+	})
 });
 
 /**
