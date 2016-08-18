@@ -2,7 +2,8 @@
     "compilerOptions": {
         "module": "commonjs",
         "outDir": "release",
-        "declaration": true
+        "declaration": true,
+        "sourceMap": true
     },
     "exclude": [
         "node_modules",
