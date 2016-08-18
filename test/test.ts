@@ -38,14 +38,16 @@ describe('parse', () => {
 		'</plist>'
 	];
 
-	function assertParse(lines:string[], expected:any): void {
-		let str = header.concat(lines).concat(footer).join('\n');
+	function _assertParse(str:string, expected:any): void {
 		let actual = parse(str);
 		assert.deepEqual(actual, expected);
 	}
 
-	function assertThrows(lines:string[]): void {
-		let str = header.concat(lines).concat(footer).join('\n');
+	function assertParse(lines:string[], expected:any): void {
+		_assertParse(header.concat(lines).concat(footer).join('\n'), expected);
+	}
+
+	function _assertThrows(str:string): void {
 		try {
 			parse(str);
 			assert.ok(false, 'throws');
@@ -53,6 +55,127 @@ describe('parse', () => {
 			assert.ok(true, 'throws');
 		}
 	}
+
+	function assertThrows(lines:string[]): void {
+		_assertThrows(header.concat(lines).concat(footer).join('\n'));
+	}
+
+	it('invalid', function() {
+		// not a tag
+		assertThrows([
+			'bar'
+		]);
+
+		// unclosed tag 1
+		_assertThrows('<');
+
+		// unclosed tag 2
+		_assertThrows('<?');
+
+		// unclosed tag 3
+		_assertThrows('<string>Hello world');
+
+		// unexpected closed tag 1
+		assertThrows([
+			'</dict>'
+		]);
+
+		// unexpected closed tag 2
+		assertThrows([
+			'</array>'
+		]);
+
+		// unexpected closed tag 3
+		assertThrows([
+			'</string>'
+		]);
+
+		// unexpected tag
+		assertThrows([
+			'<bar></bar>'
+		]);
+
+		// missing key
+		assertThrows([
+			'<dict>',
+				'<dict>',
+				'</dict>',
+			'</dict>'
+		]);
+
+		// missing key
+		assertThrows([
+			'<dict>',
+				'<array>',
+				'</array>',
+			'</dict>'
+		]);
+
+		// missing key
+		assertThrows([
+			'<dict>',
+				'<string>bar</string>',
+			'</dict>'
+		]);
+
+		// missing key
+		assertThrows([
+			'<dict>',
+				'<integer>1</integer>',
+			'</dict>'
+		]);
+
+		// missing key
+		assertThrows([
+			'<dict>',
+				'<real>1.2</real>',
+			'</dict>'
+		]);
+
+		// missing key
+		assertThrows([
+			'<dict>',
+				'<date>2016-08-18</date>',
+			'</dict>'
+		]);
+
+		// missing key
+		assertThrows([
+			'<dict>',
+				'<true/>',
+			'</dict>'
+		]);
+
+		// two keys
+		assertThrows([
+			'<dict>',
+				'<key>bar</key>',
+				'<key>bar</key>',
+			'</dict>'
+		]);
+
+		// key not allowed outside dict
+		assertThrows([
+			'<array>',
+				'<key>bar</key>',
+			'</array>'
+		]);
+
+		// key not allowed outside dict
+		assertThrows([
+			'<key>bar</key>',
+		]);
+
+		// wrong close tag 1
+		assertThrows([
+			'<array></dict>',
+		]);
+
+		// wrong close tag 2
+		assertThrows([
+			'<dict></array>',
+		]);
+	});
 
 
 	it('String', function() {
@@ -94,6 +217,13 @@ describe('parse', () => {
 
 		assertParse(
 			[
+				'<string>&unknown;</string>'
+			],
+			"&unknown;"
+		);
+
+		assertParse(
+			[
 				'<string>Ol&#225;</string>'
 			],
 			"Olá"
@@ -119,6 +249,12 @@ describe('parse', () => {
 		assertThrows(
 			[
 				'<integer>ab</integer>'
+			]
+		);
+
+		assertThrows(
+			[
+				'<real>ab</real>'
 			]
 		);
 	});
@@ -253,7 +389,7 @@ describe('parse', () => {
 			],
 			new Date('2016-08-18T07:05:03Z')
 		);
-	})
+	});
 });
 
 /**
