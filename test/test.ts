@@ -12,18 +12,18 @@ import * as sax from 'sax';
 const FIXTURES_FOLDER_PATH = path.join(__dirname, '../../test/fixtures');
 
 describe('parse', () => {
-    let fixtures = fs.readdirSync(FIXTURES_FOLDER_PATH);
+	let fixtures = fs.readdirSync(FIXTURES_FOLDER_PATH);
 
-    fixtures.forEach((fixture) => {
-        it('should work for ' + fixture, () => {
-            let contents = fs.readFileSync(path.join(FIXTURES_FOLDER_PATH, fixture)).toString();
+	fixtures.forEach((fixture) => {
+		it('should work for ' + fixture, () => {
+			let contents = fs.readFileSync(path.join(FIXTURES_FOLDER_PATH, fixture)).toString();
 
-            let expected = parseWithSAX(contents).value;
-            let actual = parse(contents);
+			let expected = parseWithSAX(contents).value;
+			let actual = parse(contents);
 
-            assert.deepEqual(actual, expected);
-        });
-    });
+			assert.deepEqual(actual, expected);
+		});
+	});
 });
 
 describe('parse', () => {
@@ -397,11 +397,11 @@ describe('parse', () => {
  */
 function parseWithSAX(content: string): { value: any; errors: string[]; } {
 
-    interface PListObject {
-        parent: PListObject;
-        value: any;
-        lastKey?: string;
-    }
+	interface PListObject {
+		parent: PListObject;
+		value: any;
+		lastKey?: string;
+	}
 
 	let errors : string[] = [];
 	let currObject : PListObject = null;
@@ -409,7 +409,7 @@ function parseWithSAX(content: string): { value: any; errors: string[]; } {
 
 	let text: string = null;
 
-    let parser = sax.parser(false, { lowercase: true });
+	let parser = sax.parser(false, { lowercase: true });
 	parser.onerror = (e:any) => {
 		errors.push(e.message);
 	};
@@ -500,5 +500,5 @@ function parseWithSAX(content: string): { value: any; errors: string[]; } {
 	};
 	parser.write(content);
 
-    return { errors: errors, value: result };
+	return { errors: errors, value: result };
 }

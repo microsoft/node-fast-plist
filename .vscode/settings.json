@@ -2,5 +2,11 @@
 {
 	"files.trimTrailingWhitespace": true,
 	"editor.insertSpaces": false,
-	"editor.tabSize": 4
+	"editor.tabSize": 4,
+	"lcov.sourceMaps": true,
+	"lcov.path": "coverage/lcov.info",
+	"lcov.watch": [{
+		"pattern": "**/test.js",
+		"command": "npm run test-travis"
+	}]
 }
