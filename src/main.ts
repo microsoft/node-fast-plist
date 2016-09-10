@@ -24,10 +24,18 @@ const enum State {
 	ARR_STATE = 2
 }
 
+export function parseWithLocation(content:string, filename:string, locationKeyName:string): any {
+	return _parse(content, filename, locationKeyName);
+}
+
 /**
  * A very fast plist parser
  */
-export function parse(content: string, locationKeyName:string = null): any {
+export function parse(content: string): any {
+	return _parse(content, null, null);
+}
+
+function _parse(content: string, filename:string, locationKeyName:string): any {
 	const len = content.length;
 
 	let pos = 0;
@@ -133,6 +141,13 @@ export function parse(content: string, locationKeyName:string = null): any {
 				fail('missing <key>');
 			}
 			let newDict = {};
+			if (locationKeyName !== null) {
+				newDict[locationKeyName] = {
+					filename: filename,
+					line: line,
+					char: char
+				};
+			}
 			cur[curKey] = newDict;
 			curKey = null;
 			pushState(State.DICT_STATE, newDict);
@@ -151,6 +166,13 @@ export function parse(content: string, locationKeyName:string = null): any {
 	const arrState = {
 		enterDict: function() {
 			let newDict = {};
+			if (locationKeyName !== null) {
+				newDict[locationKeyName] = {
+					filename: filename,
+					line: line,
+					char: char
+				};
+			}
 			cur.push(newDict);
 			pushState(State.DICT_STATE, newDict);
 		},
@@ -169,6 +191,13 @@ export function parse(content: string, locationKeyName:string = null): any {
 			arrState.enterDict();
 		} else { // ROOT_STATE
 			cur = {};
+			if (locationKeyName !== null) {
+				cur[locationKeyName] = {
+					filename: filename,
+					line: line,
+					char: char
+				};
+			}
 			pushState(State.DICT_STATE, cur);
 		}
 	}
