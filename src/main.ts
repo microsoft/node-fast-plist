@@ -3,73 +3,99 @@
  *--------------------------------------------------------*/
 'use strict';
 
+const enum ChCode {
+	BOM = 65279,
+
+	SPACE = 32,
+	TAB = 9,
+	CARRIAGE_RETURN = 13,
+	LINE_FEED = 10,
+
+	SLASH = 47,
+
+	LESS_THAN = 60,
+	QUESTION_MARK = 63,
+	EXCLAMATION_MARK = 33,
+}
+
+const enum State {
+	ROOT_STATE = 0,
+	DICT_STATE = 1,
+	ARR_STATE = 2
+}
+
 /**
  * A very fast plist parser
  */
-export function parse(content: string): any {
+export function parse(content: string/*, locationKeyName:string = null*/): any {
 	const len = content.length;
 
-	let i = 0;
+	let pos = 0;
+	// let line = 1;
+	// let char = 0;
 
 	// Skip UTF8 BOM
-	if (len > 0 && content.charCodeAt(0) === 65279) {
-		i = 1;
+	if (len > 0 && content.charCodeAt(0) === ChCode.BOM) {
+		pos = 1;
+	}
+
+	function advancePosBy(by:number): void {
+		pos = pos + by;
+	}
+	function advancePosTo(to:number): void {
+		pos = to;
 	}
 
 	function skipWhitespace(): void {
-		while (i < len) {
-			let chCode = content.charCodeAt(i);
-			if (chCode !== 32 /*<space>*/ && chCode !== 9 /*<tab>*/ && chCode !== 13 /*<CarriageReturn>*/ && chCode !== 10/*<LineFeed>*/) {
+		while (pos < len) {
+			let chCode = content.charCodeAt(pos);
+			if (chCode !== ChCode.SPACE && chCode !== ChCode.TAB && chCode !== ChCode.CARRIAGE_RETURN && chCode !== ChCode.LINE_FEED) {
 				break;
 			}
-			i++;
+			advancePosBy(1);
 		}
 	}
 
 	function advanceIfStartsWith(str:string): boolean {
-		if (content.substr(i, str.length) === str) {
-			i += str.length;
+		if (content.substr(pos, str.length) === str) {
+			advancePosBy(str.length);
 			return true;
 		}
 		return false;
 	}
 
 	function advanceUntil(str:string): void {
-		let nextOccurence = content.indexOf(str, i);
+		let nextOccurence = content.indexOf(str, pos);
 		if (nextOccurence !== -1) {
-			i = nextOccurence + str.length;
+			advancePosTo(nextOccurence + str.length);
 		} else {
 			// EOF
-			i = len;
+			advancePosTo(len);
 		}
 	}
 
 	function captureUntil(str:string): string {
-		let nextOccurence = content.indexOf(str, i);
+		let nextOccurence = content.indexOf(str, pos);
 		if (nextOccurence !== -1) {
-			let r = content.substring(i, nextOccurence);
-			i = nextOccurence + str.length;
+			let r = content.substring(pos, nextOccurence);
+			advancePosTo(nextOccurence + str.length);
 			return r;
 		} else {
 			// EOF
-			let r = content.substr(i);
-			i = len;
+			let r = content.substr(pos);
+			advancePosTo(len);
 			return r;
 		}
 	}
 
-	const ROOT_STATE = 0;
-	const DICT_STATE = 1;
-	const ARR_STATE = 2;
-
-	let state = ROOT_STATE;
+	let state = State.ROOT_STATE;
 
 	let cur:any = null;
-	let stateStack:number[] = [];
+	let stateStack:State[] = [];
 	let objStack:any[] = [];
 	let curKey:string = null;
 
-	function pushState(newState:number, newCur:any): void {
+	function pushState(newState:State, newCur:any): void {
 		stateStack.push(state);
 		objStack.push(cur);
 		state = newState;
@@ -82,7 +108,7 @@ export function parse(content: string): any {
 	}
 
 	function fail(msg:string): void {
-		throw new Error('Near offset ' + i + ': ' + msg + ' ~~~' + content.substr(i, 50) + '~~~');
+		throw new Error('Near offset ' + pos + ': ' + msg + ' ~~~' + content.substr(pos, 50) + '~~~');
 	}
 
 	const dictState = {
@@ -93,7 +119,7 @@ export function parse(content: string): any {
 			let newDict = {};
 			cur[curKey] = newDict;
 			curKey = null;
-			pushState(DICT_STATE, newDict);
+			pushState(State.DICT_STATE, newDict);
 		},
 		enterArray: function() {
 			if (curKey === null) {
@@ -102,7 +128,7 @@ export function parse(content: string): any {
 			let newArr:any[] = [];
 			cur[curKey] = newArr;
 			curKey = null;
-			pushState(ARR_STATE, newArr);
+			pushState(State.ARR_STATE, newArr);
 		}
 	};
 
@@ -110,74 +136,74 @@ export function parse(content: string): any {
 		enterDict: function() {
 			let newDict = {};
 			cur.push(newDict);
-			pushState(DICT_STATE, newDict);
+			pushState(State.DICT_STATE, newDict);
 		},
 		enterArray: function() {
 			let newArr:any[] = [];
 			cur.push(newArr);
-			pushState(ARR_STATE, newArr);
+			pushState(State.ARR_STATE, newArr);
 		}
 	};
 
 
 	function enterDict() {
-		if (state === DICT_STATE) {
+		if (state === State.DICT_STATE) {
 			dictState.enterDict();
-		} else if (state === ARR_STATE) {
+		} else if (state === State.ARR_STATE) {
 			arrState.enterDict();
 		} else { // ROOT_STATE
 			cur = {};
-			pushState(DICT_STATE, cur);
+			pushState(State.DICT_STATE, cur);
 		}
 	}
 	function leaveDict() {
-		if (state === DICT_STATE) {
+		if (state === State.DICT_STATE) {
 			popState();
-		} else if (state === ARR_STATE) {
+		} else if (state === State.ARR_STATE) {
 			fail('unexpected </dict>');
 		} else { // ROOT_STATE
 			fail('unexpected </dict>');
 		}
 	}
 	function enterArray() {
-		if (state === DICT_STATE) {
+		if (state === State.DICT_STATE) {
 			dictState.enterArray();
-		} else if (state === ARR_STATE) {
+		} else if (state === State.ARR_STATE) {
 			arrState.enterArray();
 		} else { // ROOT_STATE
 			cur = [];
-			pushState(ARR_STATE, cur);
+			pushState(State.ARR_STATE, cur);
 		}
 	}
 	function leaveArray() {
-		if (state === DICT_STATE) {
+		if (state === State.DICT_STATE) {
 			fail('unexpected </array>');
-		} else if (state === ARR_STATE) {
+		} else if (state === State.ARR_STATE) {
 			popState();
 		} else { // ROOT_STATE
 			fail('unexpected </array>');
 		}
 	}
 	function acceptKey(val:string) {
-		if (state === DICT_STATE) {
+		if (state === State.DICT_STATE) {
 			if (curKey !== null) {
 				fail('too many <key>');
 			}
 			curKey = val;
-		} else if (state === ARR_STATE) {
+		} else if (state === State.ARR_STATE) {
 			fail('unexpected <key>');
 		} else { // ROOT_STATE
 			fail('unexpected <key>');
 		}
 	}
 	function acceptString(val:string) {
-		if (state === DICT_STATE) {
+		if (state === State.DICT_STATE) {
 			if (curKey === null) {
 				fail('missing <key>');
 			}
 			cur[curKey] = val;
 			curKey = null;
-		} else if (state === ARR_STATE) {
+		} else if (state === State.ARR_STATE) {
 			cur.push(val);
 		} else { // ROOT_STATE
 			cur = val;
@@ -187,13 +213,13 @@ export function parse(content: string): any {
 		if (isNaN(val)) {
 			fail('cannot parse float');
 		}
-		if (state === DICT_STATE) {
+		if (state === State.DICT_STATE) {
 			if (curKey === null) {
 				fail('missing <key>');
 			}
 			cur[curKey] = val;
 			curKey = null;
-		} else if (state === ARR_STATE) {
+		} else if (state === State.ARR_STATE) {
 			cur.push(val);
 		} else { // ROOT_STATE
 			cur = val;
@@ -203,52 +229,52 @@ export function parse(content: string): any {
 		if (isNaN(val)) {
 			fail('cannot parse integer');
 		}
-		if (state === DICT_STATE) {
+		if (state === State.DICT_STATE) {
 			if (curKey === null) {
 				fail('missing <key>');
 			}
 			cur[curKey] = val;
 			curKey = null;
-		} else if (state === ARR_STATE) {
+		} else if (state === State.ARR_STATE) {
 			cur.push(val);
 		} else { // ROOT_STATE
 			cur = val;
 		}
 	}
 	function acceptDate(val:Date) {
-		if (state === DICT_STATE) {
+		if (state === State.DICT_STATE) {
 			if (curKey === null) {
 				fail('missing <key>');
 			}
 			cur[curKey] = val;
 			curKey = null;
-		} else if (state === ARR_STATE) {
+		} else if (state === State.ARR_STATE) {
 			cur.push(val);
 		} else { // ROOT_STATE
 			cur = val;
 		}
 	}
 	function acceptData(val:string) {
-		if (state === DICT_STATE) {
+		if (state === State.DICT_STATE) {
 			if (curKey === null) {
 				fail('missing <key>');
 			}
 			cur[curKey] = val;
 			curKey = null;
-		} else if (state === ARR_STATE) {
+		} else if (state === State.ARR_STATE) {
 			cur.push(val);
 		} else { // ROOT_STATE
 			cur = val;
 		}
 	}
 	function acceptBool(val:boolean) {
-		if (state === DICT_STATE) {
+		if (state === State.DICT_STATE) {
 			if (curKey === null) {
 				fail('missing <key>');
 			}
 			cur[curKey] = val;
 			curKey = null;
-		} else if (state === ARR_STATE) {
+		} else if (state === State.ARR_STATE) {
 			cur.push(val);
 		} else { // ROOT_STATE
 			cur = val;
@@ -280,7 +306,7 @@ export function parse(content: string): any {
 	function parseOpenTag(): IParsedTag {
 		let r = captureUntil('>');
 		let isClosed = false;
-		if (r.charCodeAt(r.length - 1) === 47 /*/*/) {
+		if (r.charCodeAt(r.length - 1) === ChCode.SLASH) {
 			isClosed = true;
 			r = r.substring(0, r.length - 1);
 		}
@@ -300,31 +326,32 @@ export function parse(content: string): any {
 		return escapeVal(val);
 	}
 
-	while (i < len) {
+	while (pos < len) {
 		skipWhitespace();
-		if (i >= len) {
+		if (pos >= len) {
 			break;
 		}
 
-		const chCode = content.charCodeAt(i++);
-		if (chCode !== 60 /*<*/) {
+		const chCode = content.charCodeAt(pos);
+		advancePosBy(1);
+		if (chCode !== ChCode.LESS_THAN) {
 			fail('expected <');
 		}
 
-		if (i >= len) {
+		if (pos >= len) {
 			fail('unexpected end of input');
 		}
 
-		const peekChCode = content.charCodeAt(i);
+		const peekChCode = content.charCodeAt(pos);
 
-		if (peekChCode === 63 /*?*/) {
-			i++;
+		if (peekChCode === ChCode.QUESTION_MARK) {
+			advancePosBy(1);
 			advanceUntil('?>');
 			continue;
 		}
 
-		if (peekChCode === 33 /*!*/) {
-			i++;
+		if (peekChCode === ChCode.EXCLAMATION_MARK) {
+			advancePosBy(1);
 
 			if (advanceIfStartsWith('--')) {
 				advanceUntil('-->');
@@ -335,8 +362,8 @@ export function parse(content: string): any {
 			continue;
 		}
 
-		if (peekChCode === 47 /*/*/) {
-			i++;
+		if (peekChCode === ChCode.SLASH) {
+			advancePosBy(1);
 			skipWhitespace();
 
 			if (advanceIfStartsWith('plist')) {
