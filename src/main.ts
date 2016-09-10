@@ -27,12 +27,12 @@ const enum State {
 /**
  * A very fast plist parser
  */
-export function parse(content: string/*, locationKeyName:string = null*/): any {
+export function parse(content: string, locationKeyName:string = null): any {
 	const len = content.length;
 
 	let pos = 0;
-	// let line = 1;
-	// let char = 0;
+	let line = 1;
+	let char = 0;
 
 	// Skip UTF8 BOM
 	if (len > 0 && content.charCodeAt(0) === ChCode.BOM) {
@@ -40,10 +40,26 @@ export function parse(content: string/*, locationKeyName:string = null*/): any {
 	}
 
 	function advancePosBy(by:number): void {
-		pos = pos + by;
+		if (locationKeyName === null) {
+			pos = pos + by;
+		} else {
+			while (by > 0) {
+				let chCode = content.charCodeAt(pos);
+				if (chCode === ChCode.LINE_FEED) {
+					pos++; line++; char=0;
+				} else {
+					pos++; char++;
+				}
+				by--;
+			}
+		}
 	}
 	function advancePosTo(to:number): void {
-		pos = to;
+		if (locationKeyName === null) {
+			pos = to;
+		} else {
+			advancePosBy(to - pos);
+		}
 	}
 
 	function skipWhitespace(): void {
