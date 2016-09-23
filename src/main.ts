@@ -35,7 +35,7 @@ export function parse(content: string): any {
 	return _parse(content, null, null);
 }
 
-function _parse(content: string, filename:string, locationKeyName:string): any {
+function _parse(content: string, filename:string|null, locationKeyName:string|null): any {
 	const len = content.length;
 
 	let pos = 0;
@@ -117,7 +117,7 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 	let cur:any = null;
 	let stateStack:State[] = [];
 	let objStack:any[] = [];
-	let curKey:string = null;
+	let curKey:string|null = null;
 
 	function pushState(newState:State, newCur:any): void {
 		stateStack.push(state);
@@ -127,7 +127,10 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 	}
 
 	function popState(): void {
-		state = stateStack.pop();
+		if (stateStack.length === 0) {
+			return fail('illegal state stack');
+		}
+		state = stateStack.pop()!;
 		cur = objStack.pop();
 	}
 
@@ -138,7 +141,7 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 	const dictState = {
 		enterDict: function() {
 			if (curKey === null) {
-				fail('missing <key>');
+				return fail('missing <key>');
 			}
 			let newDict = {};
 			if (locationKeyName !== null) {
@@ -154,7 +157,7 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 		},
 		enterArray: function() {
 			if (curKey === null) {
-				fail('missing <key>');
+				return fail('missing <key>');
 			}
 			let newArr:any[] = [];
 			cur[curKey] = newArr;
@@ -205,9 +208,9 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 		if (state === State.DICT_STATE) {
 			popState();
 		} else if (state === State.ARR_STATE) {
-			fail('unexpected </dict>');
+			return fail('unexpected </dict>');
 		} else { // ROOT_STATE
-			fail('unexpected </dict>');
+			return fail('unexpected </dict>');
 		}
 	}
 	function enterArray() {
@@ -222,29 +225,29 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 	}
 	function leaveArray() {
 		if (state === State.DICT_STATE) {
-			fail('unexpected </array>');
+			return fail('unexpected </array>');
 		} else if (state === State.ARR_STATE) {
 			popState();
 		} else { // ROOT_STATE
-			fail('unexpected </array>');
+			return fail('unexpected </array>');
 		}
 	}
 	function acceptKey(val:string) {
 		if (state === State.DICT_STATE) {
 			if (curKey !== null) {
-				fail('too many <key>');
+				return fail('too many <key>');
 			}
 			curKey = val;
 		} else if (state === State.ARR_STATE) {
-			fail('unexpected <key>');
+			return fail('unexpected <key>');
 		} else { // ROOT_STATE
-			fail('unexpected <key>');
+			return fail('unexpected <key>');
 		}
 	}
 	function acceptString(val:string) {
 		if (state === State.DICT_STATE) {
 			if (curKey === null) {
-				fail('missing <key>');
+				return fail('missing <key>');
 			}
 			cur[curKey] = val;
 			curKey = null;
@@ -256,11 +259,11 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 	}
 	function acceptReal(val:number) {
 		if (isNaN(val)) {
-			fail('cannot parse float');
+			return fail('cannot parse float');
 		}
 		if (state === State.DICT_STATE) {
 			if (curKey === null) {
-				fail('missing <key>');
+				return fail('missing <key>');
 			}
 			cur[curKey] = val;
 			curKey = null;
@@ -272,11 +275,11 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 	}
 	function acceptInteger(val:number) {
 		if (isNaN(val)) {
-			fail('cannot parse integer');
+			return fail('cannot parse integer');
 		}
 		if (state === State.DICT_STATE) {
 			if (curKey === null) {
-				fail('missing <key>');
+				return fail('missing <key>');
 			}
 			cur[curKey] = val;
 			curKey = null;
@@ -289,7 +292,7 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 	function acceptDate(val:Date) {
 		if (state === State.DICT_STATE) {
 			if (curKey === null) {
-				fail('missing <key>');
+				return fail('missing <key>');
 			}
 			cur[curKey] = val;
 			curKey = null;
@@ -302,7 +305,7 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 	function acceptData(val:string) {
 		if (state === State.DICT_STATE) {
 			if (curKey === null) {
-				fail('missing <key>');
+				return fail('missing <key>');
 			}
 			cur[curKey] = val;
 			curKey = null;
@@ -315,7 +318,7 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 	function acceptBool(val:boolean) {
 		if (state === State.DICT_STATE) {
 			if (curKey === null) {
-				fail('missing <key>');
+				return fail('missing <key>');
 			}
 			cur[curKey] = val;
 			curKey = null;
@@ -380,11 +383,11 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 		const chCode = content.charCodeAt(pos);
 		advancePosBy(1);
 		if (chCode !== ChCode.LESS_THAN) {
-			fail('expected <');
+			return fail('expected <');
 		}
 
 		if (pos >= len) {
-			fail('unexpected end of input');
+			return fail('unexpected end of input');
 		}
 
 		const peekChCode = content.charCodeAt(pos);
@@ -428,7 +431,7 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 				continue;
 			}
 
-			fail('unexpected closed tag');
+			return fail('unexpected closed tag');
 		}
 
 		let tag = parseOpenTag();
@@ -487,7 +490,7 @@ function _parse(content: string, filename:string, locationKeyName:string): any {
 			continue;
 		}
 
-		fail('unexpected opened tag ' + tag.name);
+		return fail('unexpected opened tag ' + tag.name);
 	}
 
 	return cur;

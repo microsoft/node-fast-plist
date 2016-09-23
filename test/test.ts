@@ -398,16 +398,16 @@ describe('parse', () => {
 function parseWithSAX(content: string): { value: any; errors: string[]; } {
 
 	interface PListObject {
-		parent: PListObject;
+		parent: PListObject|null;
 		value: any;
-		lastKey?: string;
+		lastKey?: string|null;
 	}
 
 	let errors : string[] = [];
-	let currObject : PListObject = null;
+	let currObject : PListObject|null = null;
 	let result : any = null;
 
-	let text: string = null;
+	let text: string = '';
 
 	let parser = sax.parser(false, { lowercase: true });
 	parser.onerror = (e:any) => {
