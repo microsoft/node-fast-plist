@@ -8,7 +8,6 @@
   "scripts": {
     "watch": "tsc -w",
     "test": "mocha release/test/test",
-    "test-travis": "istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec release/test/test",
     "prepublish": "tsc"
   },
   "repository": {
@@ -21,10 +20,7 @@
   },
   "homepage": "https://github.com/Microsoft/node-fast-plist#readme",
   "devDependencies": {
-    "coveralls": "^2.11.12",
-    "istanbul": "^0.4.4",
     "mocha": "^3.0.2",
-    "remap-istanbul": "^0.6.4",
     "sax": "^1.2.1",
     "typescript": "^2.0.3",
     "typings": "^1.3.2"
