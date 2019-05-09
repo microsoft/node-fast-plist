@@ -1,4 +1,4 @@
-# fast-plist [![Build Status](https://travis-ci.org/Microsoft/node-fast-plist.svg?branch=master)](https://travis-ci.org/Microsoft/node-fast-plist)
+# fast-plist [![Build Status](https://dev.azure.com/ms/node-fast-plist/_apis/build/status/microsoft.node-fast-plist?branchName=master)](https://dev.azure.com/ms/node-fast-plist/_build/latest?definitionId=139&branchName=master)
 A fast PLIST parser.
 
 
