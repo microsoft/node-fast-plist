@@ -3,7 +3,7 @@
         "module": "commonjs",
         "outDir": "release",
         "declaration": true,
-        "sourceMap": true,
+        "sourceMap": false,
         "strictNullChecks": true
     },
     "exclude": [
