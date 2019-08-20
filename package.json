@@ -20,10 +20,10 @@
   },
   "homepage": "https://github.com/Microsoft/node-fast-plist#readme",
   "devDependencies": {
-    "@types/mocha": "^5.2.6",
-    "@types/node": "^12.0.0",
-    "mocha": "^6.1.4",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.7.2",
+    "mocha": "^6.2.0",
     "sax": "^1.2.4",
-    "typescript": "^3.4.5"
+    "typescript": "^3.5.3"
   }
 }
