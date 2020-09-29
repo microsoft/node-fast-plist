@@ -3,6 +3,8 @@
  *--------------------------------------------------------*/
 'use strict';
 
+type Dict = { [k: string]: any }
+
 const enum ChCode {
 	BOM = 65279,
 
@@ -143,7 +145,7 @@ function _parse(content: string, filename:string|null, locationKeyName:string|nu
 			if (curKey === null) {
 				return fail('missing <key>');
 			}
-			let newDict = {};
+			let newDict: Dict = {};
 			if (locationKeyName !== null) {
 				newDict[locationKeyName] = {
 					filename: filename,
@@ -168,7 +170,7 @@ function _parse(content: string, filename:string|null, locationKeyName:string|nu
 
 	const arrState = {
 		enterDict: function() {
-			let newDict = {};
+			let newDict: Dict = {};
 			if (locationKeyName !== null) {
 				newDict[locationKeyName] = {
 					filename: filename,
