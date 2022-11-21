@@ -8,5 +8,8 @@
 	"lcov.watch": [{
 		"pattern": "**/test.js",
 		"command": "npm run test-travis"
-	}]
+	}],
+	"git.branchProtection": ["main", "release/*"],
+	"git.branchProtectionPrompt": "alwaysCommitToNewBranch",
+	"git.branchRandomName.enable": true
 }
