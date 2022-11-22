@@ -1,14 +1,12 @@
+/.github/
 /.vscode/
 /build/pipeline.yml
-/coverage/
 /release/src/main.js.map
 /release/test/
 /src/
 /test/
-/typings/
+/.gitattributes
 /.gitignore
 /.npmignore
-/.travis.yml
 /ThirdPartyNotices.txt
 /tsconfig.json
-/typings.json
