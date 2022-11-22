@@ -1,4 +1,5 @@
 /.vscode/
+/build/pipeline.yml
 /coverage/
 /release/src/main.js.map
 /release/test/
