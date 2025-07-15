@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Run Mocha tests",
+			"command": "npx mocha --require ts-node/register test/*.ts",
+			"group": "test",
+			"problemMatcher": [
+				"$tsc"
+			]
+		}
+	]
+}

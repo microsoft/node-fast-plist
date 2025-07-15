@@ -367,14 +367,47 @@ function _parse(content: string, filename:string|null, locationKeyName:string|nu
 		};
 	}
 
-	function parseTagValue(tag:IParsedTag): string {
-		if (tag.isClosed) {
-			return '';
-		}
-		let val = captureUntil('</');
-		advanceUntil('>');
-		return escapeVal(val);
-	}
+	   function parseTagValue(tag:IParsedTag): string {
+			   if (tag.isClosed) {
+					   return '';
+			   }
+			   let result = '';
+			   while (true) {
+					   // Find next CDATA or closing tag
+					   let cdataIdx = content.indexOf('<![CDATA[', pos);
+					   let closeIdx = content.indexOf('</', pos);
+					   if (cdataIdx !== -1 && (closeIdx === -1 || cdataIdx < closeIdx)) {
+							   // Text before CDATA
+							   if (cdataIdx > pos) {
+									   result += escapeVal(content.substring(pos, cdataIdx));
+							   }
+							   // CDATA section
+							   advancePosTo(cdataIdx + 9); // skip <![CDATA[
+							   let cdataEnd = content.indexOf(']]>', pos);
+							   if (cdataEnd === -1) {
+									   fail('Unclosed CDATA section');
+									   throw new Error('Unreachable');
+							   }
+							   result += content.substring(pos, cdataEnd);
+							   advancePosTo(cdataEnd + 3); // skip ]]>
+							   continue;
+					   } else if (closeIdx !== -1 && (cdataIdx === -1 || closeIdx < cdataIdx)) {
+							   // Text before closing tag
+							   if (closeIdx > pos) {
+									   result += escapeVal(content.substring(pos, closeIdx));
+							   }
+							   advancePosTo(closeIdx);
+							   break;
+					   } else {
+							   // No more CDATA or closing tag, just take the rest
+							   result += escapeVal(content.substr(pos));
+							   advancePosTo(len);
+							   break;
+					   }
+			   }
+			   advanceUntil('>');
+			   return result;
+	   }
 
 	while (pos < len) {
 		skipWhitespace();
