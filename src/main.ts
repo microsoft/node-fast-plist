@@ -521,11 +521,11 @@ function _parse(content: string, filename:string|null, locationKeyName:string|nu
 				continue;
 		}
 
-		if (/^plist/.test(tag.name)) {
-			continue;
-		}
+	   if (/^plist/.test(tag.name) || /^snippet/.test(tag.name)) {
+		   continue;
+	   }
 
-		return fail('unexpected opened tag ' + tag.name);
+	   return fail('unexpected opened tag ' + tag.name);
 	}
 
 	return cur;
