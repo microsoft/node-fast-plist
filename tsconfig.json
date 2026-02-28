@@ -4,8 +4,12 @@
         "outDir": "release",
         "declaration": true,
         "sourceMap": false,
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "skipLibCheck": true
     },
+    "include": [
+        "src"
+    ],
     "exclude": [
         "node_modules",
         "release"

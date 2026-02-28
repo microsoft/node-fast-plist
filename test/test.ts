@@ -8,8 +8,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as assert from 'assert';
 import * as sax from 'sax';
+import { fileURLToPath } from 'url';
 
-const FIXTURES_FOLDER_PATH = path.join(__dirname, '../../test/fixtures');
+const FIXTURES_FOLDER_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
 describe('parse', () => {
 	let fixtures = fs.readdirSync(FIXTURES_FOLDER_PATH);
